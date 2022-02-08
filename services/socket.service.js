@@ -14,6 +14,10 @@ function connectSockets(http, session) {
         socket.on('disconnect', socket => {
             console.log('Someone disconnected')
         })
+
+        socket.on('comment-added', comment => {
+            socket.broadcast.emit('comment-added', comment)
+        })
         // socket.on('chat topic', topic => {
         //     if (socket.myTopic === topic) return;
         //     if (socket.myTopic) {
@@ -58,22 +62,27 @@ async function emitToUser({ type, data, userId }) {
     }
 }
 
-// Send to all sockets BUT not the current socket 
-async function broadcast({ type, data, room = null, userId }) {
-    console.log('BROADCASTING', JSON.stringify(arguments));
-    const excludedSocket = await _getUserSocket(userId)
-    if (!excludedSocket) {
-        // logger.debug('Shouldnt happen, socket not found')
-        // _printSockets();
-        return;
-    }
-    logger.debug('broadcast to all but user: ', userId)
-    if (room) {
-        excludedSocket.broadcast.to(room).emit(type, data)
-    } else {
-        excludedSocket.broadcast.emit(type, data)
-    }
+async function broadcast({ type, data }) {
+    console.log(type, data);
+    gIo.emit(type, data)
 }
+
+// Send to all sockets BUT not the current socket 
+// async function broadcast({ type, data, room = null, userId }) {
+//     console.log('BROADCASTING', JSON.stringify(arguments));
+//     const excludedSocket = await _getUserSocket(userId)
+//     if (!excludedSocket) {
+//         // logger.debug('Shouldnt happen, socket not found')
+//         // _printSockets();
+//         return;
+//     }
+//     logger.debug('broadcast to all but user: ', userId)
+//     if (room) {
+//         excludedSocket.broadcast.to(room).emit(type, data)
+//     } else {
+//         excludedSocket.broadcast.emit(type, data)
+//     }
+// }
 
 async function _getUserSocket(userId) {
     const sockets = await _getAllSockets();

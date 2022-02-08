@@ -2,6 +2,7 @@ const logger = require('../../services/logger.service')
 const userService = require('../user/user.service')
 const socketService = require('../../services/socket.service')
 const commentService = require('./comment.service')
+var md5 = require('md5');
 
 async function getComments(req, res) {
     try {
@@ -27,6 +28,8 @@ async function getComments(req, res) {
 async function addComment(req, res) {
     try {
         var comment = req.body
+        const emailToHash = comment.email.trim().toLowerCase()
+        comment.imgHash = md5(emailToHash)
         // comment.byUserId = req.session.user._id
         comment = await commentService.add(comment)
         socketService.broadcast({ type: 'comment-added', data: comment })
